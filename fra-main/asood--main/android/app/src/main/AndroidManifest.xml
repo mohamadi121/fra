@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.asood.vendor">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- pedometer-->
@@ -17,29 +16,19 @@
     <!-- // awesome notifications -->
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <!--<uses-permission android:name="android.permission.RECORD_AUDIO" />-->
-    <uses-permission android:name=
-        "android.permission.READ_EXTERNAL_STORAGE" />
-
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <!-- For apps with targetSDK=31 (Android 12) -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-
-    <!-- audio record -->
-    <!--<uses-permission android:name="android.permission.RECORD_AUDIO" />-->
-    <!-- VIBRATE -->
     <uses-permission android:name="android.permission.VIBRATE"/>
-
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:label="آسود"
-       
         android:name="${applicationName}"
         android:allowBackup="false"
         android:fullBackupOnly="false"
-
         android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
@@ -71,7 +60,7 @@
                 <!-- Accepts URIs that begin with YOUR_SCHEME://YOUR_HOST -->
                 <data
                     android:scheme="https"
-                    android:host="deeplink.salamatiman.ir" />
+                    android:host="deeplink.asood.ir" />
             </intent-filter>
 
             <!-- App Links -->
@@ -79,23 +68,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Acceimport com.adpdigital.push.AdpPushClient;
-import com.adpdigital.push.config.Environment;
-
-import io.flutter.app.FlutterApplication;
-
-public class MyAppClass extends FlutterApplication {
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        AdpPushClient.configureEnvironment(Environment.SANDBOX); // or PRODUCTION
-    }
-}
-pts URIs that begin with https://YOUR_HOST -->
+                <!-- Accepts URIs that begin with https://YOUR_HOST -->
                 <data
                     android:scheme="https"
-                    android:host="deeplink.salamatiman.ir" />
+                    android:host="deeplink.asood.ir" />
             </intent-filter>
 
         </activity>
@@ -130,5 +106,10 @@ pts URIs that begin with https://YOUR_HOST -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+            
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${mapsApiKey}" />
     </application>
 </manifest>

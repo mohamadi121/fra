@@ -6,20 +6,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' hide LatLng;
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 
 import '../../../models/location_model.dart';
 import '../../../services/Secure_Storage.dart';
 import '../../../shared/utils/snack_bar_util.dart';
-import '../../../shared/widgets/map_widget_2.dart';
+import '../../../shared/widgets/map_widget_unified.dart'; // استفاده از کامپوننت یکپارچه
 import '../blocs/create_workspace/create_workspace_bloc.dart';
 import '../../../shared/constants/constants.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_dialog.dart';
 import '../../../shared/widgets/custom_textfield.dart';
-import '../../../shared/widgets/map_widget.dart';
 import '../screens/stores.dart';
 
 class LocationInfo extends StatefulWidget {
@@ -32,7 +32,7 @@ class LocationInfo extends StatefulWidget {
 
 class _LocationInfoState extends State<LocationInfo> {
   bool switchValue = false;
-  
+
   String countryName = 'کشور';
   int countryId = 0;
 
@@ -51,10 +51,8 @@ class _LocationInfoState extends State<LocationInfo> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     bloc = BlocProvider.of<CreateWorkSpaceBloc>(context);
-    // Dispatch the event when the screen is opened
     bloc.add(LoadCountry());
   }
 
@@ -65,8 +63,7 @@ class _LocationInfoState extends State<LocationInfo> {
     super.dispose();
   }
 
-  void country(){
-
+  void country() {
     setState(() {
       provinceName = 'استان';
       provinceId = 0;
@@ -76,45 +73,39 @@ class _LocationInfoState extends State<LocationInfo> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
-            "کشور",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colora.scaffold,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
+            title: const Text(
+              "کشور",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colora.scaffold,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
             ),
-          ),
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20.0))
-          ),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: Dimensions.width * 0.03
-          ),
-          backgroundColor: Colora.primaryColor,
-          content: BlocBuilder<CreateWorkSpaceBloc, CreateWorkSpaceState>(
-            builder: (context, state) {
-              if(state.status == CWSStatus.success){
-                return Container(
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: Dimensions.width * 0.03),
+            backgroundColor: Colora.primaryColor,
+            content: BlocBuilder<CreateWorkSpaceBloc, CreateWorkSpaceState>(
+                builder: (context, state) {
+              if (state.status == CWSStatus.success) {
+                return SizedBox(
                   width: Dimensions.width * 0.7,
                   height: Dimensions.height * 0.5,
-                  padding: EdgeInsets.symmetric(
-                      vertical: Dimensions.height * 0.01,
-                      horizontal: Dimensions.width * 0.0
-                  ),
                   child: ListView.builder(
+                    padding: EdgeInsets.symmetric(
+                        vertical: Dimensions.height * 0.01),
                     itemCount: state.countryList.length,
                     itemBuilder: (context, index) {
                       return Container(
                         margin: EdgeInsets.symmetric(
-                            vertical: Dimensions.height * 0.005
-                        ),
+                            vertical: Dimensions.height * 0.005),
                         decoration: BoxDecoration(
                             color: Colora.scaffold,
-                            borderRadius: BorderRadius.circular(20)
-                        ),
+                            borderRadius: BorderRadius.circular(20)),
                         child: MaterialButton(
-                          onPressed: (){
+                          onPressed: () {
                             setState(() {
                               countryName = state.countryList[index].name!;
                             });
@@ -127,48 +118,38 @@ class _LocationInfoState extends State<LocationInfo> {
                             style: const TextStyle(
                                 color: Colora.primaryColor,
                                 fontSize: 15,
-                                fontWeight: FontWeight.w700
-                            ),
+                                fontWeight: FontWeight.w700),
                           ),
                         ),
                       );
                     },
                   ),
                 );
-              }
-              else if(state.status == CWSStatus.loading){
-                return Container(
+              } else if (state.status == CWSStatus.loading) {
+                return SizedBox(
                   width: Dimensions.width * 0.7,
                   height: Dimensions.height * 0.5,
                   child: const Center(
-                      child: CircularProgressIndicator(color: Colora.scaffold,)
-                  ),
+                      child: CircularProgressIndicator(color: Colora.scaffold)),
                 );
-              }
-              else{
-                return Container(
+              } else {
+                return SizedBox(
                   width: Dimensions.width * 0.7,
                   height: Dimensions.height * 0.5,
                   child: const Center(
                     child: Text(
                       'خطا در برقراری اطلاعات',
-                      style: TextStyle(
-                          color: Colora.scaffold
-                      ),
+                      style: TextStyle(color: Colora.scaffold),
                     ),
                   ),
                 );
               }
-            }
-          )
-        );
+            }));
       },
     );
-
   }
 
-  void province(){
-
+  void province() {
     setState(() {
       cityName = 'شهر';
       cityId = 0;
@@ -189,87 +170,73 @@ class _LocationInfoState extends State<LocationInfo> {
               ),
             ),
             shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20.0))
-            ),
-            contentPadding: EdgeInsets.symmetric(
-                horizontal: Dimensions.width * 0.03
-            ),
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: Dimensions.width * 0.03),
             backgroundColor: Colora.primaryColor,
             content: BlocBuilder<CreateWorkSpaceBloc, CreateWorkSpaceState>(
-              builder: (context, state) {
-                if(state.status == CWSStatus.success){
-                  return Container(
-                    width: Dimensions.width * 0.7,
-                    height: Dimensions.height * 0.5,
+                builder: (context, state) {
+              if (state.status == CWSStatus.success) {
+                return SizedBox(
+                  width: Dimensions.width * 0.7,
+                  height: Dimensions.height * 0.5,
+                  child: ListView.builder(
                     padding: EdgeInsets.symmetric(
-                        vertical: Dimensions.height * 0.01,
-                        horizontal: Dimensions.width * 0.0
-                    ),
-                    child: ListView.builder(
-                      itemCount: state.provinceList.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: EdgeInsets.symmetric(
-                              vertical: Dimensions.height * 0.005
-                          ),
-                          decoration: BoxDecoration(
-                              color: Colora.scaffold,
-                              borderRadius: BorderRadius.circular(20)
-                          ),
-                          child: MaterialButton(
-                            onPressed: (){
-                              setState(() {
-                                provinceName = state.provinceList[index].name!;
-                              });
+                        vertical: Dimensions.height * 0.01),
+                    itemCount: state.provinceList.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: EdgeInsets.symmetric(
+                            vertical: Dimensions.height * 0.005),
+                        decoration: BoxDecoration(
+                            color: Colora.scaffold,
+                            borderRadius: BorderRadius.circular(20)),
+                        child: MaterialButton(
+                          onPressed: () {
+                            setState(() {
+                              provinceName = state.provinceList[index].name!;
+                            });
 
-                              provinceId = state.provinceList[index].id!;
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(
-                              state.provinceList[index].name.toString(),
-                              style: const TextStyle(
-                                  color: Colora.primaryColor,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700
-                              ),
-                            ),
+                            provinceId = state.provinceList[index].id!;
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            state.provinceList[index].name.toString(),
+                            style: const TextStyle(
+                                color: Colora.primaryColor,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700),
                           ),
-                        );
-                      },
-                    ),
-                  );
-                }
-                else if(state.status == CWSStatus.loading){
-                  return SizedBox(
-                    width: Dimensions.width * 0.7,
-                    height: Dimensions.height * 0.5,
-                    child: const Center(
-                        child: CircularProgressIndicator(color: Colora.scaffold,)
-                    ),
-                  );
-                }
-                else{
-                  return SizedBox(
-                    width: Dimensions.width * 0.7,
-                    height: Dimensions.height * 0.5,
-                    child: const Center(
-                      child: Text(
-                        'خطا در برقراری اطلاعات',
-                        style: TextStyle(
-                            color: Colora.scaffold
                         ),
-                      ),
+                      );
+                    },
+                  ),
+                );
+              } else if (state.status == CWSStatus.loading) {
+                return SizedBox(
+                  width: Dimensions.width * 0.7,
+                  height: Dimensions.height * 0.5,
+                  child: const Center(
+                      child: CircularProgressIndicator(color: Colora.scaffold)),
+                );
+              } else {
+                return SizedBox(
+                  width: Dimensions.width * 0.7,
+                  height: Dimensions.height * 0.5,
+                  child: const Center(
+                    child: Text(
+                      'خطا در برقراری اطلاعات',
+                      style: TextStyle(color: Colora.scaffold),
                     ),
-                  );
-                }
+                  ),
+                );
               }
-            )
-        );
+            }));
       },
     );
   }
 
-  void city(){
+  void city() {
     bloc.add(LoadCity(provinceId: provinceId));
     showDialog(
       context: context,
@@ -285,87 +252,71 @@ class _LocationInfoState extends State<LocationInfo> {
               ),
             ),
             shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20.0))
-            ),
-            contentPadding: EdgeInsets.symmetric(
-                horizontal: Dimensions.width * 0.03
-            ),
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: Dimensions.width * 0.03),
             backgroundColor: Colora.primaryColor,
             content: BlocBuilder<CreateWorkSpaceBloc, CreateWorkSpaceState>(
-              builder: (context, state) {
-                if(state.status == CWSStatus.success){
-                  return Container(
-                    width: Dimensions.width * 0.7,
-                    height: Dimensions.height * 0.5,
+                builder: (context, state) {
+              if (state.status == CWSStatus.success) {
+                return SizedBox(
+                  width: Dimensions.width * 0.7,
+                  height: Dimensions.height * 0.5,
+                  child: ListView.builder(
                     padding: EdgeInsets.symmetric(
-                        vertical: Dimensions.height * 0.01,
-                        horizontal: Dimensions.width * 0.0
-                    ),
-                    child: ListView.builder(
-                      itemCount: state.cityList.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: EdgeInsets.symmetric(
-                              vertical: Dimensions.height * 0.005
-                          ),
-                          decoration: BoxDecoration(
-                              color: Colora.scaffold,
-                              borderRadius: BorderRadius.circular(20)
-                          ),
-                          child: MaterialButton(
-                            onPressed: (){
-                              setState(() {
-                                cityName = state.cityList[index].name!;
-                              });
+                        vertical: Dimensions.height * 0.01),
+                    itemCount: state.cityList.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: EdgeInsets.symmetric(
+                            vertical: Dimensions.height * 0.005),
+                        decoration: BoxDecoration(
+                            color: Colora.scaffold,
+                            borderRadius: BorderRadius.circular(20)),
+                        child: MaterialButton(
+                          onPressed: () {
+                            setState(() {
+                              cityName = state.cityList[index].name!;
+                            });
 
-                              cityId = state.cityList[index].id!;
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(
-                              state.cityList[index].name.toString(),
-                              style: const TextStyle(
-                                  color: Colora.primaryColor,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700
-                              ),
-                            ),
+                            cityId = state.cityList[index].id!;
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            state.cityList[index].name.toString(),
+                            style: const TextStyle(
+                                color: Colora.primaryColor,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700),
                           ),
-                        );
-                      },
-                    ),
-                  );
-                }
-                else if(state.status == CWSStatus.loading){
-                  return Container(
-                    width: Dimensions.width * 0.7,
-                    height: Dimensions.height * 0.5,
-                    child: const Center(
-                      child: CircularProgressIndicator(color: Colora.scaffold,)
-                    ),
-                  );
-                }
-                else{
-                  return Container(
-                    width: Dimensions.width * 0.7,
-                    height: Dimensions.height * 0.5,
-                    child: const Center(
-                      child: Text(
-                        'خطا در برقراری اطلاعات',
-                        style: TextStyle(
-                          color: Colora.scaffold
                         ),
-                      ),
+                      );
+                    },
+                  ),
+                );
+              } else if (state.status == CWSStatus.loading) {
+                return SizedBox(
+                  width: Dimensions.width * 0.7,
+                  height: Dimensions.height * 0.5,
+                  child: const Center(
+                      child: CircularProgressIndicator(color: Colora.scaffold)),
+                );
+              } else {
+                return SizedBox(
+                  width: Dimensions.width * 0.7,
+                  height: Dimensions.height * 0.5,
+                  child: const Center(
+                    child: Text(
+                      'خطا در برقراری اطلاعات',
+                      style: TextStyle(color: Colora.scaffold),
                     ),
-                  );
-                }
-
+                  ),
+                );
               }
-            )
-        );
+            }));
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -376,7 +327,6 @@ class _LocationInfoState extends State<LocationInfo> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-
             //image
             Container(
               height: Dimensions.height * 0.25,
@@ -386,8 +336,7 @@ class _LocationInfoState extends State<LocationInfo> {
               ),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: Colora.primaryColor
-              ),
+                  color: Colora.primaryColor),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
@@ -403,21 +352,16 @@ class _LocationInfoState extends State<LocationInfo> {
 
             Container(
               width: Dimensions.width,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 5,
-                vertical: 10
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colora.primaryColor
-              ),
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colora.primaryColor),
               child: Column(
                 children: [
-
                   //country
                   const SizedBox(height: 15),
                   CustomButton(
-                    onPress:() => country(),
+                    onPress: () => country(),
                     width: Dimensions.width * 0.88,
                     height: Dimensions.height * 0.05,
                     color: Colors.white,
@@ -429,14 +373,10 @@ class _LocationInfoState extends State<LocationInfo> {
                   //province
                   const SizedBox(height: 2),
                   CustomButton(
-                    onPress: (){
-                      if(countryId == 0){
-                        showSnackBar(
-                          context,
-                          "لطفا ابتدا کشور را انتخاب کنید"
-                        );
-                      }
-                      else{
+                    onPress: () {
+                      if (countryId == 0) {
+                        showSnackBar(context, "لطفا ابتدا کشور را انتخاب کنید");
+                      } else {
                         province();
                       }
                     },
@@ -451,14 +391,11 @@ class _LocationInfoState extends State<LocationInfo> {
                   //city
                   const SizedBox(height: 2),
                   CustomButton(
-                    onPress: (){
-                      if(provinceId == 0){
+                    onPress: () {
+                      if (provinceId == 0) {
                         showSnackBar(
-                            context,
-                            "لطفا ابتدا استان را انتخاب کنید"
-                        );
-                      }
-                      else{
+                            context, "لطفا ابتدا استان را انتخاب کنید");
+                      } else {
                         city();
                       }
                     },
@@ -472,35 +409,35 @@ class _LocationInfoState extends State<LocationInfo> {
 
                   // address
                   CustomTextField(
-                    maxLine: 6,
-                    controller: addressController,
-                    text: "آدرس فروشگاه"
-                  ),
+                      maxLine: 6,
+                      controller: addressController,
+                      text: "آدرس فروشگاه"),
                   const SizedBox(height: 7),
 
                   //zipcode
-                  CustomTextField(controller: zipCodeController, text: "کد پستی"),
+                  CustomTextField(
+                      controller: zipCodeController, text: "کد پستی"),
 
                   //location picker
                   Container(
-                    margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
                     height: 220,
-                    /*     decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20), color: Colors.white), */
                     child: Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: MapScreen(
-                          isSelecting: true,
-                          selectedLocation: (mapLocation) {
-                            setState(() {
-                              location = mapLocation;
-                            });
-                          },
-                        ),
-                      )
-                      // LocationPicker(),
-                    ),
+                        child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: MapScreen(
+                        isSelecting: true,
+                        selectedLocation: (mapLocation) {
+                          // تبدیل LatLng از نوع Google Maps به نوع latlong2
+                          final convertedLocation = LatLng(
+                              mapLocation.latitude, mapLocation.longitude);
+                          setState(() {
+                            location = convertedLocation;
+                          });
+                        },
+                      ),
+                    )),
                   ),
                   const SizedBox(
                     height: 7,
@@ -513,12 +450,12 @@ class _LocationInfoState extends State<LocationInfo> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-
                           //back
                           CustomButton(
                             width: 100,
                             onPress: () {
-                              widget.bloc.add(const ChangeTabView(activeTabIndex: 1));
+                              widget.bloc.add(
+                                  const ChangeTabView(activeTabIndex: 1));
                             },
                             text: "قبلی",
                             color: Colors.white,
@@ -532,104 +469,120 @@ class _LocationInfoState extends State<LocationInfo> {
                           //submit
                           CustomButton(
                             width: 100,
-                            onPress: () async{
+                            onPress: () async {
                               FocusManager.instance.primaryFocus?.unfocus();
 
-                              if(cityId == 0 || addressController.text.isEmpty){
+                              if (cityId == 0 ||
+                                  addressController.text.isEmpty) {
                                 showSnackBar(
-                                    context, "لطفا شهر و آدرس را پر کنید"
-                                );
-                              }
-                              else{
-                                String marketId = await SecureStorage().readSecureStorage('market_id');
-                                widget.bloc.add(
-                                    MarketLocation(
-                                      marketId: int.parse(marketId),
-                                      city: cityId,
-                                      workAddress: addressController.text,
-                                      postalCode: zipCodeController.text,
-                                      longitude: location.latitude.toString().substring(0,8),
-                                      latitude: location.longitude.toString().substring(0,8),
-                                    )
-                                );
+                                    context, "لطفا شهر و آدرس را پر کنید");
+                              } else {
+                                String marketId = await SecureStorage()
+                                    .readSecureStorage('market_id');
+                                widget.bloc.add(MarketLocation(
+                                  marketId: int.parse(marketId),
+                                  city: cityId,
+                                  workAddress: addressController.text,
+                                  postalCode: zipCodeController.text,
+                                  longitude: location.latitude
+                                      .toString()
+                                      .substring(0, 8),
+                                  latitude: location.longitude
+                                      .toString()
+                                      .substring(0, 8),
+                                ));
 
-                                if(widget.bloc.state.status == CWSStatus.success){
+                                if (widget.bloc.state.status ==
+                                    CWSStatus.success) {
                                   CustomDialog(
                                     context: context,
                                     title: "انتخاب درگاه",
-                                    widget: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    widget: SizedBox(
                                       height: 120,
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Text(
                                               'میخواهید از درگاه آسود استفاده کنید یا درگاه شخصی؟'),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               CustomButton(
                                                 onPress: () {
                                                   Navigator.of(context).pop();
                                                   CustomDialog(
-                                                      context: context,
-                                                      title: "ثبت درگاه شخصی",
-                                                      widget: Container(
-                                                        height: 130,
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                          children: [
-                                                            const Text(
-                                                                'کلید درگاه خود را وارد کنید'),
-                                                            SizedBox(
-                                                              height: 35,
-                                                              child: CustomTextField(
-                                                                controller:
-                                                                TextEditingController(),
-                                                                text: "کد درگاه",
-                                                                hintStyle:
-                                                                const TextStyle(
-                                                                    color:
-                                                                    Colors.white),
-                                                                color:
-                                                                Colora.primaryColor,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
+                                                          context: context,
+                                                          title: "ثبت درگاه شخصی",
+                                                          widget: SizedBox(
+                                                            height: 130,
+                                                            child: Column(
                                                               mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
+                                                                  MainAxisAlignment
+                                                                      .spaceBetween,
                                                               children: [
-                                                                CustomButton(
-                                                                  onPress: () {},
-                                                                  text: "ثبت",
-                                                                  width: 120,
-                                                                  color:
-                                                                  Colora.primaryColor,
-                                                                  textColor: Colors.white,
+                                                                const Text(
+                                                                    'کلید درگاه خود را وارد کنید'),
+                                                                SizedBox(
+                                                                  height: 35,
+                                                                  child:
+                                                                      CustomTextField(
+                                                                    controller:
+                                                                        TextEditingController(),
+                                                                    text:
+                                                                        "کد درگاه",
+                                                                    hintStyle:
+                                                                        const TextStyle(
+                                                                            color:
+                                                                                Colors.white),
+                                                                    color: Colora
+                                                                        .primaryColor,
+                                                                  ),
                                                                 ),
                                                                 const SizedBox(
-                                                                  width: 5,
+                                                                  height: 5,
                                                                 ),
-                                                                CustomButton(
-                                                                  onPress: () {},
-                                                                  text: "انصراف",
-                                                                  width: 120,
-                                                                  color:
-                                                                  Colora.primaryColor,
-                                                                  textColor: Colors.white,
-                                                                ),
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    CustomButton(
+                                                                      onPress:
+                                                                          () {},
+                                                                      text:
+                                                                          "ثبت",
+                                                                      width:
+                                                                          120,
+                                                                      color: Colora
+                                                                          .primaryColor,
+                                                                      textColor:
+                                                                          Colors
+                                                                              .white,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 5,
+                                                                    ),
+                                                                    CustomButton(
+                                                                      onPress:
+                                                                          () {},
+                                                                      text:
+                                                                          "انصراف",
+                                                                      width:
+                                                                          120,
+                                                                      color: Colora
+                                                                          .primaryColor,
+                                                                      textColor:
+                                                                          Colors
+                                                                              .white,
+                                                                    ),
+                                                                  ],
+                                                                )
                                                               ],
-                                                            )
-                                                          ],
-                                                        ),
-                                                      )).showCustomDialog();
+                                                            ),
+                                                          ))
+                                                      .showCustomDialog();
                                                 },
                                                 text: "درگاه شخصی",
                                                 width: 90,
@@ -639,13 +592,18 @@ class _LocationInfoState extends State<LocationInfo> {
                                               CustomButton(
                                                 onPress: () {
                                                   Navigator.pop(context);
-                                                  context.router.pushNamed('/stores');
+                                                  context.router
+                                                      .pushNamed('/stores');
 
-
-                                                  widget.bloc.add(const ChangeTabView(activeTabIndex: 0));
-                                                  SecureStorage().deleteSecureStorage('market_id');
-                                                  SecureStorage().deleteSecureStorage('marketActiveTabIndex');
-
+                                                  widget.bloc.add(
+                                                      const ChangeTabView(
+                                                          activeTabIndex: 0));
+                                                  SecureStorage()
+                                                      .deleteSecureStorage(
+                                                          'market_id');
+                                                  SecureStorage()
+                                                      .deleteSecureStorage(
+                                                          'marketActiveTabIndex');
                                                 },
                                                 text: "بعدا",
                                                 width: 90,
@@ -659,8 +617,10 @@ class _LocationInfoState extends State<LocationInfo> {
                                                     context: context,
                                                     title: "پرداخت حق اشتراک",
                                                     widget: Container(
-                                                      padding: const EdgeInsets.symmetric(
-                                                          vertical: 10, horizontal: 10),
+                                                      padding: const EdgeInsets
+                                                              .symmetric(
+                                                          vertical: 10,
+                                                          horizontal: 10),
                                                       child: Column(
                                                         children: [
                                                           const Text(
@@ -668,125 +628,144 @@ class _LocationInfoState extends State<LocationInfo> {
                                                           const SizedBox(
                                                             height: 5,
                                                           ),
-                                                          Container(
-                                                            child: Row(
-                                                              mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .spaceBetween,
-                                                              children: [
-                                                                SizedBox(
-                                                                  height: 35,
-                                                                  width: 180,
-                                                                  child: CustomTextField(
-                                                                    color: Colora
-                                                                        .primaryColor
-                                                                        .withOpacity(0.5),
-                                                                    controller:
-                                                                    TextEditingController(),
-                                                                    text: "کد تخفیف",
-                                                                  ),
+                                                          Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceBetween,
+                                                            children: [
+                                                              SizedBox(
+                                                                height: 35,
+                                                                width: 180,
+                                                                child:
+                                                                    CustomTextField(
+                                                                  color: Colora
+                                                                      .primaryColor
+                                                                      .withOpacity(
+                                                                          0.5),
+                                                                  controller:
+                                                                      TextEditingController(),
+                                                                  text:
+                                                                      "کد تخفیف",
                                                                 ),
-                                                                CustomButton(
-                                                                  height: 35,
-                                                                  width: 100,
-                                                                  onPress: () {},
-                                                                  text: "ثبت تخفیف",
-                                                                ),
-                                                              ],
-                                                            ),
+                                                              ),
+                                                              CustomButton(
+                                                                height: 35,
+                                                                width: 100,
+                                                                onPress: () {},
+                                                                text:
+                                                                    "ثبت تخفیف",
+                                                              ),
+                                                            ],
                                                           ),
                                                           Container(
-                                                            padding: const EdgeInsets
-                                                                .symmetric(
-                                                                vertical: 10,
-                                                                horizontal: 30),
-                                                            margin: const EdgeInsets
-                                                                .symmetric(
-                                                                horizontal: 8,
-                                                                vertical: 8),
+                                                            padding:
+                                                                const EdgeInsets
+                                                                        .symmetric(
+                                                                    vertical:
+                                                                        10,
+                                                                    horizontal:
+                                                                        30),
+                                                            margin:
+                                                                const EdgeInsets
+                                                                        .symmetric(
+                                                                    horizontal:
+                                                                        8,
+                                                                    vertical:
+                                                                        8),
                                                             height: 200,
-                                                            width: Dimensions.width,
+                                                            width:
+                                                                Dimensions.width,
                                                             decoration: BoxDecoration(
                                                                 borderRadius:
-                                                                BorderRadius.circular(
-                                                                    20),
-                                                                color: Colors.grey
-                                                                    .withOpacity(0.2)),
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20),
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                        0.2)),
                                                             child: const Column(
                                                               children: [
                                                                 Row(
                                                                   mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .spaceBetween,
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
                                                                   children: [
-                                                                    Text("مبلغ پرداختی:"),
+                                                                    Text(
+                                                                        "مبلغ پرداختی:"),
                                                                     Text("تومان")
                                                                   ],
                                                                 ),
-                                                                SizedBox(height: 10),
+                                                                SizedBox(
+                                                                    height: 10),
                                                                 Row(
                                                                   mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .spaceBetween,
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
                                                                   children: [
-                                                                    Text("مبلغ پرداختی:"),
+                                                                    Text(
+                                                                        "مبلغ پرداختی:"),
                                                                     Text("تومان")
                                                                   ],
                                                                 ),
-                                                                SizedBox(height: 10),
+                                                                SizedBox(
+                                                                    height: 10),
                                                                 Row(
                                                                   mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .spaceBetween,
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
                                                                   children: [
-                                                                    Text("مبلغ پرداختی:"),
+                                                                    Text(
+                                                                        "مبلغ پرداختی:"),
                                                                     Text("تومان")
                                                                   ],
                                                                 ),
-                                                                SizedBox(height: 10),
+                                                                SizedBox(
+                                                                    height: 10),
                                                                 Row(
                                                                   mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .spaceBetween,
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
                                                                   children: [
-                                                                    Text("مبلغ پرداختی:"),
+                                                                    Text(
+                                                                        "مبلغ پرداختی:"),
                                                                     Text("تومان")
                                                                   ],
                                                                 ),
-                                                                SizedBox(height: 10),
+                                                                SizedBox(
+                                                                    height: 10),
                                                                 Row(
                                                                   mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .spaceBetween,
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
                                                                   children: [
-                                                                    Text("مبلغ پرداختی:"),
+                                                                    Text(
+                                                                        "مبلغ پرداختی:"),
                                                                     Text("تومان")
                                                                   ],
                                                                 ),
-                                                                SizedBox(height: 10),
+                                                                SizedBox(
+                                                                    height: 10),
                                                               ],
                                                             ),
                                                           ),
                                                           Row(
                                                             mainAxisAlignment:
-                                                            MainAxisAlignment.center,
+                                                                MainAxisAlignment
+                                                                    .center,
                                                             children: [
                                                               CustomButton(
                                                                 onPress: () {
-                                                                  context.router.push(
-                                                                      const StoresRoute());
-                                                                  /*        Navigator.push(
-                                                                  context,
-                                                                  MaterialPageRoute(
-                                                                      builder:
-                                                                          (context) =>
-                                                                              const StoresScreen())); */
+                                                                  context.router
+                                                                      .push(const StoresRoute());
                                                                 },
                                                                 text: "پرداخت",
                                                                 width: 120,
-                                                                color:
-                                                                Colora.primaryColor,
-                                                                textColor: Colors.white,
+                                                                color: Colora
+                                                                    .primaryColor,
+                                                                textColor:
+                                                                    Colors
+                                                                        .white,
                                                               ),
                                                               const SizedBox(
                                                                 width: 5,
@@ -795,9 +774,11 @@ class _LocationInfoState extends State<LocationInfo> {
                                                                 onPress: () {},
                                                                 text: "انصراف",
                                                                 width: 120,
-                                                                color:
-                                                                Colora.primaryColor,
-                                                                textColor: Colors.white,
+                                                                color: Colora
+                                                                    .primaryColor,
+                                                                textColor:
+                                                                    Colors
+                                                                        .white,
                                                               ),
                                                             ],
                                                           )
@@ -818,16 +799,13 @@ class _LocationInfoState extends State<LocationInfo> {
                                     ),
                                   ).showCustomDialog();
                                 }
-
                               }
-
                             },
                             text: "ثبت",
                             color: Colors.white,
                             textColor: Colora.primaryColor,
                             height: 40,
                           ),
-
                         ],
                       ),
                     ),

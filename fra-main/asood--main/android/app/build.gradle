@@ -22,6 +22,12 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "com.asood.vendor"
     compileSdkVersion 34
@@ -41,28 +47,57 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.asood.vendor"
         minSdkVersion 21
         multiDexEnabled true
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        
+        // استفاده از mapsApiKey از فایل key.properties
+        manifestPlaceholders = [mapsApiKey: keystoreProperties.getProperty('mapsApiKey', '')]
+        
         project.android.applicationVariants.all { variant ->
-                        variant.outputs.each { output ->
-                             output.versionCodeOverride = flutterVersionCode.toInteger()
-                         }
-                }
+                variant.outputs.each { output ->
+                     output.versionCodeOverride = flutterVersionCode.toInteger()
+                 }
+        }
+    }
+
+    signingConfigs {
+        debug {
+            // اضافه کردن تنظیمات debug signing
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('debug.keystore')
+            storePassword 'android'
+        }
+        release {
+            if (keystoreProperties.containsKey('storeFile')) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            } else {
+                // اگر فایل کلید وجود نداشته باشد، از تنظیمات دیباگ استفاده می‌کند
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+                storeFile file('debug.keystore')
+                storePassword 'android'
+            }
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            //signingConfig signingConfigs.release
+            signingConfig signingConfigs.release
+            shrinkResources true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        
+        debug {
             signingConfig signingConfigs.debug
-            //shrinkResources false
-            //minifyEnabled false
         }
     }
 }
